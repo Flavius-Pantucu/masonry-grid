@@ -6,7 +6,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 })
 export class MasonryGridService {
   photos :any = [];
-  url: string = 'https://api.unsplash.com/photos?page=1&per_page=20&client_id=KTJuKe-fu6x7GcYpRORakGwAzAEDRROVyn01mah4UWU';
+  url: string = 'https://api.unsplash.com/photos?page=6&per_page=20&client_id=KTJuKe-fu6x7GcYpRORakGwAzAEDRROVyn01mah4UWU';
 
   constructor(private http: HttpClient) { }
   
