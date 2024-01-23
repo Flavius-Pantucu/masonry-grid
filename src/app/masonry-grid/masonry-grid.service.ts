@@ -36,4 +36,23 @@ export class MasonryGridService {
       }
     });
   }
+
+  getPreviousBatch(): Observable<Object> {
+    this.curr_page = this.curr_page - 2;
+    return this.http.get(this.api_url, {
+      params:{
+        page: this.curr_page++,
+        per_page: this.per_page,
+        client_id: this.access_key
+      }
+    });
+  }
+
+  getBatchSize(){
+    return this.per_page;
+  }
+
+  getCurrentPage(){
+    return this.curr_page;
+  }
 }
