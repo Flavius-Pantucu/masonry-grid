@@ -10,11 +10,11 @@
         <div class="h1 fw-bold">Masonry Grid</div>
     </div>
     <div class="grid-container d-flex w-100 justify-content-center">
-        <div class="mansonry-grid d-flex w-75 row-cols-1 row-cols-md-2 row-cols-lg-3 row-col-xl-4 flex-wrap">
-            <div *ngFor = 'let photo of photos | async; index as i' class="d-flex justify-content-center p-1">
+        <div id="photosContainer" class="mansonry-grid d-flex w-75 row-cols-1 row-cols-md-2 row-cols-lg-3 row-col-xl-4 flex-wrap">
+            <!-- <div *ngFor = 'let photo of current_batch | async; index as i' class="d-flex justify-content-center p-1">
                 <div *ngIf='!isLoaded[i]' class="loader"></div>
                 <img [hidden]="!isLoaded[i]" (load)="onLoad(i)" [src]="photo.urls.raw" [alt]="photo.description" class="w-75 rounded-4">
-            </div>
+            </div> -->
         </div>
     </div>
 </body>

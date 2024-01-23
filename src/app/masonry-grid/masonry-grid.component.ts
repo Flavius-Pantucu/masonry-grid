@@ -13,23 +13,73 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
   styleUrl: './masonry-grid.component.css'
 })
 export class MasonryGridComponent {
-  photos: any = [];
-  isLoaded :boolean[] = [];
-
-  constructor(private masonryGridService: MasonryGridService){
-    this.photos = this.masonryGridService.getPhotos();
-    this.isLoaded = new Array(this.photos.length).fill(false); 
+  previous_batch: any = [];
+  current_batch: any = [];
+  next_batch: any = [];
+  
+  constructor(private masonryGridService: MasonryGridService){ 
   }
 
-  onLoad(i: number) {
-    this.isLoaded[i] = true;
+  ngOnInit() {
+    this.masonryGridService.getInitialPhotos().subscribe({
+      next: (data: any) =>
+      {
+        this.current_batch = data;
+        this.populateGrid();
+      },
+      error: (error: any) =>
+        console.log(error)
+    });
+
+  }
+
+  populateGrid(){
+    let container = document.getElementById('photosContainer');
+    for(let i = 0; i < this.current_batch.length; i++){
+      let photoDiv = document.createElement('div');
+      photoDiv.classList.add('d-flex', 'justify-content-center', 'p-1');
+
+      let photo = document.createElement('img');
+      photo.src = this.current_batch[i].urls.raw;
+      photo.classList.add('w-75','rounded-4');
+    
+      photoDiv.append(photo);
+
+      container?.appendChild(photoDiv);
+    }
+  }
+
+  loadNextBatch(){
+    let container = document.getElementById('photosContainer');
+    for(let i = 0; i < this.current_batch.length; i++){
+      let photoDiv = document.createElement('div');
+      photoDiv.classList.add('d-flex', 'justify-content-center', 'p-1');
+
+      let photo = document.createElement('img');
+      photo.src = this.current_batch[i].urls.raw;
+      photo.classList.add('w-75','rounded-4');
+    
+      photoDiv.append(photo);
+
+      container?.appendChild(photoDiv);
+    }
   }
 
  @HostListener('document:scroll', ['$event'])
-  public onViewportScroll(){
+  public onScroll(){
     let pos = document.documentElement.scrollTop + window.innerHeight;
     let max = document.documentElement.scrollHeight;
-    console.log(pos/max);
-    
+    if(pos / max > 0.75){
+      this.masonryGridService.getNextBatch().subscribe({
+        next: (data: any) =>
+        {
+          this.previous_batch = this.current_batch;
+          this.current_batch = data;
+          this.loadNextBatch();
+        },
+        error: (error: any) =>
+          console.log(error)
+      });
+    }
   }
 }
