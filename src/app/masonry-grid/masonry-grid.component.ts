@@ -58,7 +58,7 @@ export class MasonryGridComponent {
       text.style.fontWeight = 'bold';
 
       photoDiv.append(text);
-      
+
       let photo = document.createElement('img');
       photo.src = batch[i].urls.regular;
       photo.classList.add('mw-100','mh-100','h-auto','w-auto','object-fit-contain','rounded-3','m-auto');
@@ -103,9 +103,9 @@ export class MasonryGridComponent {
 
     let loadOptions :string = '';
 
-    if(scrollPercentage > 0.8  && scrollDirection == 'down')
+    if(scrollPercentage > 0.75  && scrollDirection == 'down')
       loadOptions = 'next';
-    else if(scrollPercentage < 0.2 && scrollDirection == 'up' && this.masonryGridService.getCurrentPage() >= 3)
+    else if(scrollPercentage < 0.25 && scrollDirection == 'up' && this.masonryGridService.getCurrentPage() >= 3)
       loadOptions = 'previous';
     else
       return;
@@ -143,6 +143,6 @@ export class MasonryGridComponent {
       error: (error: any) =>
         console.log(error)
     });
-    setTimeout(() => this.batchTimeout = false, 1000);
+    setTimeout(() => this.batchTimeout = false, 500);
   }
 }
