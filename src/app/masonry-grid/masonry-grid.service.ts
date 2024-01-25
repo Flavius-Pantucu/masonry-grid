@@ -16,8 +16,6 @@ export class MasonryGridService {
   constructor(private http: HttpClient) { }
   
   getPhotos(): Observable<Object> {
-    console.log(this.curr_page);
-    
     return this.http.get(this.api_url, {
       params:{
         page: this.curr_page,
