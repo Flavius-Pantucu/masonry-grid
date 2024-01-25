@@ -52,7 +52,7 @@ export class MasonryGridComponent {
 
       let photo = document.createElement('img');
       photo.src = batch[i].urls.regular;
-      photo.classList.add('w-75','rounded-4');
+      photo.classList.add('mw-100','mh-100','h-auto','w-auto','object-fit-contain','rounded-4','m-auto');
     
       photoDiv.append(photo);
 
