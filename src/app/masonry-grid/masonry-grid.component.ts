@@ -48,12 +48,22 @@ export class MasonryGridComponent {
 
     for(let i = 0; i < batchSize; i++){
       let photoDiv = document.createElement('div');
-      photoDiv.classList.add('d-flex', 'justify-content-center', 'p-1');
+      photoDiv.classList.add('d-flex', 'p-2', 'flex-column');
+
+      console.log(batch[i]);
+      
+      let text = document.createElement('span');
+      text.classList.add('d-flex','justify-content-center');
+
+      text.innerText = batch[i].alt_description;
+      text.style.fontSize = '12px';
+      text.style.fontWeight = 'bold';
 
       let photo = document.createElement('img');
       photo.src = batch[i].urls.regular;
-      photo.classList.add('mw-100','mh-100','h-auto','w-auto','object-fit-contain','rounded-4','m-auto');
+      photo.classList.add('mw-100','mh-100','h-auto','w-auto','object-fit-contain','rounded-3','m-auto');
     
+      photoDiv.append(text);
       photoDiv.append(photo);
 
       if(insertType == 'append')
