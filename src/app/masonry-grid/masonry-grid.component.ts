@@ -48,7 +48,8 @@ export class MasonryGridComponent {
 
     for(let i = 0; i < batchSize; i++){
       let photoDiv = document.createElement('div');
-      photoDiv.classList.add('d-flex', 'p-2', 'flex-column');
+      photoDiv.classList.add('p-2');
+      photoDiv.style.clear = 'both';
 
       let text = document.createElement('span');
       text.classList.add('d-flex','justify-content-center');
@@ -61,7 +62,7 @@ export class MasonryGridComponent {
 
       let photo = document.createElement('img');
       photo.src = batch[i].urls.regular;
-      photo.classList.add('mw-100','mh-100','h-auto','w-auto','object-fit-contain','rounded-3','m-auto');
+      photo.classList.add('mw-100','mh-100','h-auto','w-auto','object-fit-contain','rounded-3');
     
       photoDiv.append(photo);
 
