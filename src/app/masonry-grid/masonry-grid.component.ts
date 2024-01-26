@@ -239,6 +239,7 @@ export class MasonryGridComponent {
         newOffsetHeight[j % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
       }
       this.batchesOffsetHeight[i] = [...newOffsetHeight];
+      this.batchesOffsetWidth[i] = newOffsetWidth;
     }
   }
 
