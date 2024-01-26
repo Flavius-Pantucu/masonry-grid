@@ -40,7 +40,7 @@ export class MasonryGridComponent {
     this.innerHeight = window.innerHeight;
     this.innerWidth = window.innerWidth;
     
-    this.photosPerRow = this.calculatePPR();
+    this.photosPerRow = this.calculatePPR(this.innerWidth);
 
     this.currentOffsetHeight = new Array(this.photosPerRow).fill(0);
     this.totalOffsetHeight = new Array(this.photosPerRow).fill(0);
@@ -55,7 +55,7 @@ export class MasonryGridComponent {
     });
   }
 
-  calculatePPR(){
+  calculatePPR(width: number){
     if(this.innerWidth < 768) return 1;
     else if(this.innerWidth < 992) return 2;
     else if(this.innerWidth < 1200) return 3;
@@ -200,7 +200,7 @@ export class MasonryGridComponent {
     }
   }
 
-  repositionImages(){
+  repositionImages(oldWidth: number, newWidth: number){
     let remainingPhotos: any[] = Array.from(document.getElementsByClassName('photo-container'));
     
     this.totalOffsetHeight.fill(0);
@@ -215,8 +215,8 @@ export class MasonryGridComponent {
       image.style.left = this.totalOffsetWidth + 'px';
       image.style.top = this.totalOffsetHeight[i % this.photosPerRow ] + 'px';
       
-      this.totalOffsetWidth += this.innerWidth / this.photosPerRow ;
-      this.totalOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.offsetHeight) / (image.offsetWidth * this.photosPerRow);
+      this.totalOffsetWidth += newWidth / this.photosPerRow ;
+      this.totalOffsetHeight[i % this.photosPerRow ] += (newWidth * image.offsetHeight) / (image.offsetWidth * this.photosPerRow);
     }
   }
 
@@ -286,12 +286,12 @@ export class MasonryGridComponent {
 
   @HostListener('window:resize', ['$event'])
   onResize($event: any) {
-    this.innerWidth = $event.target.innerWidth;
+    let newWidth = $event.target.innerWidth;
     
-    let newPPR = this.calculatePPR();
+    let newPPR = this.calculatePPR(newWidth);
 
     if(newPPR == this.photosPerRow){
-      this.repositionImages();
+      this.repositionImages(this.innerWidth, newWidth);
     }else{
 
     }
