@@ -12,23 +12,23 @@ import { ElementSchemaRegistry } from '@angular/compiler';
   styleUrl: './masonry-grid.component.css'
 })
 export class MasonryGridComponent {
-  previous_batch: any = [];
-  current_batch:  any = [];
+  previousBatch: any = [];
+  currentBatch:  any = [];
   
   scrollPosition: number = 0;
   
   batchTimeout:   boolean = false;
 
-  innerHeight: number = 0;
-  innerWidth: number = 0;
+  innerHeight:  number = 0;
+  innerWidth:   number = 0;
   photosPerRow: number = 0;
 
-  offsetWidth: number = 0;
   offsetHeight: number[] = [];
+  offsetWidth:  number = 0;
 
-  prevOffsetWidth: number[] = [];
   prevOffsetHeight: number[][] = [];
-  deletedBatches: number[] = [];
+  prevOffsetWidth:  number[] = [];
+  deletedBatches:   number[] = [];
 
   constructor(private masonryGridService: MasonryGridService){ 
   }
@@ -44,29 +44,23 @@ export class MasonryGridComponent {
     this.masonryGridService.getPhotos().subscribe({
       next: (data: any) =>
       {
-        this.current_batch = data;
+        this.currentBatch = data;
         this.insertBatch('append');
       },
-      error: (error: any) =>
-        console.log(error)
+      error: (error: any) => console.log(error)
     });
   }
 
   calculatePPR(){
-    if(this.innerWidth < 768)
-      return 1;
-    else if(this.innerWidth < 992)
-      return 2;
-    else if(this.innerWidth < 1200)
-      return 3;
-    else 
-      return 4;
+    if(this.innerWidth < 768) return 1;
+    else if(this.innerWidth < 992) return 2;
+    else if(this.innerWidth < 1200) return 3;
+    else return 4;
   }
 
   setPhotoPosition(photoDiv: HTMLDivElement, i: number,  image:any, insertType: string){
     if(insertType == 'append'){
-      if(i % this.photosPerRow  == 0)
-        this.offsetWidth = 0;
+      if(i % this.photosPerRow  == 0) this.offsetWidth = 0;
 
       photoDiv.style.left = this.offsetWidth + 'px';
       photoDiv.style.top = this.offsetHeight[i % this.photosPerRow ] + 'px';
@@ -151,9 +145,9 @@ export class MasonryGridComponent {
 
     let batch;
     if(insertType == 'append')
-      batch = this.current_batch;
+      batch = this.currentBatch;
     else if(insertType == 'prepend')
-      batch = this.previous_batch.reverse();
+      batch = this.previousBatch.reverse();
 
     for(let i = 0; i < batchSize; i++){
       let photoDiv = this.createPhotoDiv(i,batch[i],insertType);
@@ -220,18 +214,18 @@ export class MasonryGridComponent {
       next: (data: any) =>
       {
         if(loadOptions == 'next'){
-          if(this.previous_batch.length != 0){
+          if(this.previousBatch.length != 0){
             this.deletedBatches.push(currentPage - 2);
             this.deleteBatch('first');
           }
-          this.previous_batch = this.current_batch;
-          this.current_batch = data;
+          this.previousBatch = this.currentBatch;
+          this.currentBatch = data;
           this.insertBatch('append');
         }
         else if(loadOptions == 'previous'){
           // this.deleteBatch('last');
-          // this.current_batch = this.previous_batch;
-          // this.previous_batch = data;
+          // this.currentBatch = this.previousBatch;
+          // this.previousBatch = data;
           // this.insertBatch('prepend');
 
           // this.masonryGridService.setCurrentPage(++currentPage);
