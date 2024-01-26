@@ -110,7 +110,7 @@ export class MasonryGridComponent {
     return photoDiv;
   }
 
-  recalculateImagesPosition(insertType: string){
+  translateImages(insertType: string){
     if(this.deletedBatches.length == 0) return;
     
     let remainingPhotos: any[] = Array.from(document.getElementsByClassName('photo-container'));
@@ -162,7 +162,7 @@ export class MasonryGridComponent {
       this.currentOffsetWidth = this.batchesOffsetWidth[lastBatchDeleted - 1];
       this.currentOffsetHeight = [...this.batchesOffsetHeight[lastBatchDeleted - 1]];
       
-      this.recalculateImagesPosition(insertType);
+      this.translateImages(insertType);
       
       this.deletedBatches.pop();
     }
@@ -180,7 +180,7 @@ export class MasonryGridComponent {
       this.batchesOffsetHeight.push([...this.currentOffsetHeight]);
       this.batchesOffsetWidth.push(this.currentOffsetWidth);
       
-      this.recalculateImagesPosition(insertType);
+      this.translateImages(insertType);
     }
   }
 
@@ -197,6 +197,26 @@ export class MasonryGridComponent {
       else return;
       
       container.removeChild(child);
+    }
+  }
+
+  repositionImages(){
+    let remainingPhotos: any[] = Array.from(document.getElementsByClassName('photo-container'));
+    
+    this.totalOffsetHeight.fill(0);
+    this.totalOffsetWidth = 0;
+
+    for(let i = 0; i < remainingPhotos.length; i++){
+      var image = remainingPhotos[i];
+
+      if(i % this.photosPerRow  == 0)
+        this.totalOffsetWidth = 0;
+      
+      image.style.left = this.totalOffsetWidth + 'px';
+      image.style.top = this.totalOffsetHeight[i % this.photosPerRow ] + 'px';
+      
+      this.totalOffsetWidth += this.innerWidth / this.photosPerRow ;
+      this.totalOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.offsetHeight) / (image.offsetWidth * this.photosPerRow);
     }
   }
 
@@ -262,5 +282,18 @@ export class MasonryGridComponent {
       window.scrollTo(0,screenHeight * 0.5);
 
     setTimeout(() => this.batchTimeout = false, 500);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize($event: any) {
+    this.innerWidth = $event.target.innerWidth;
+    
+    let newPPR = this.calculatePPR();
+
+    if(newPPR == this.photosPerRow){
+      this.repositionImages();
+    }else{
+
+    }
   }
 }
