@@ -23,11 +23,14 @@ export class MasonryGridComponent {
   innerWidth:   number = 0;
   photosPerRow: number = 0;
 
-  offsetHeight: number[] = [];
-  offsetWidth:  number = 0;
+  totalOffsetHeight: number[] = [];
+  totalOffsetWidth:  number = 0;
 
-  prevOffsetHeight: number[][] = [];
-  prevOffsetWidth:  number[] = [];
+  currentOffsetHeight: number[] = [];
+  currentOffsetWidth:  number = 0;
+
+  batchesOffsetHeight: number[][] = [];
+  batchesOffsetWidth:  number[] = [];
   deletedBatches:   number[] = [];
 
   constructor(private masonryGridService: MasonryGridService){ 
@@ -39,7 +42,8 @@ export class MasonryGridComponent {
     
     this.photosPerRow = this.calculatePPR();
 
-    this.offsetHeight = new Array(this.photosPerRow).fill(0);
+    this.currentOffsetHeight = new Array(this.photosPerRow).fill(0);
+    this.totalOffsetHeight = new Array(this.photosPerRow).fill(0);
 
     this.masonryGridService.getPhotos().subscribe({
       next: (data: any) =>
@@ -60,22 +64,30 @@ export class MasonryGridComponent {
 
   setPhotoPosition(photoDiv: HTMLDivElement, i: number,  image:any, insertType: string){
     if(insertType == 'append'){
-      if(i % this.photosPerRow  == 0) this.offsetWidth = 0;
+      if(i % this.photosPerRow  == 0){
+        this.totalOffsetWidth = 0;
+        this.currentOffsetWidth = 0;
+      } 
 
-      photoDiv.style.left = this.offsetWidth + 'px';
-      photoDiv.style.top = this.offsetHeight[i % this.photosPerRow ] + 'px';
-    
-      this.offsetWidth += this.innerWidth / this.photosPerRow ;
-      this.offsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
+      photoDiv.style.left = this.totalOffsetWidth + 'px';
+      photoDiv.style.top = this.totalOffsetHeight[i % this.photosPerRow ] + 'px';
+      
+      this.currentOffsetWidth += this.innerWidth / this.photosPerRow ;
+      this.currentOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
+
+      this.totalOffsetWidth += this.innerWidth / this.photosPerRow ;
+      this.totalOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
     }else if(insertType == 'prepend'){
-      // if(this.prevOffsetWidth[-1] == 0)
-      //   this.prevOffsetWidth[-1] = this.innerWidth;
+      if(this.currentOffsetWidth == 0)
+        this.currentOffsetWidth = this.innerWidth;
 
-      // photoDiv.style.left = (this.prevOffsetWidth[-1] - this.innerWidth / this.photosPerRow) + 'px';
-      // photoDiv.style.top = (this.offsetHeight[i % this.photosPerRow ] - this.innerWidth * image.height) / (image.width * this.photosPerRow) + 'px';
+      let batchSize = this.masonryGridService.getBatchSize();
+      
+      photoDiv.style.left = (this.currentOffsetWidth - this.innerWidth / this.photosPerRow) + 'px';
+      photoDiv.style.top = this.currentOffsetHeight[(batchSize - i - 1) % this.photosPerRow ] - (this.innerWidth * image.height) / (image.width * this.photosPerRow) + 'px';
     
-      // this.prevOffsetWidth[-1] -= this.innerWidth / this.photosPerRow ;
-      // this.prevOffsetHeight[-1][i % this.photosPerRow ] -= (this.innerWidth * image.height) / (image.width * this.photosPerRow); 
+      this.currentOffsetWidth -= this.innerWidth / this.photosPerRow ;
+      this.currentOffsetHeight[(batchSize - i - 1) % this.photosPerRow ] -= (this.innerWidth * image.height) / (image.width * this.photosPerRow); 
     }
 
     return photoDiv;
@@ -98,47 +110,42 @@ export class MasonryGridComponent {
     return photoDiv;
   }
 
-  calculatePrevNewOffset(){
-    let index = this.prevOffsetHeight.length;
-
-    if(index == 0){
-      this.prevOffsetHeight.push([...this.offsetHeight]);
-      this.prevOffsetWidth.push(this.offsetWidth);
-      return; 
-    } 
-
-    let newOffsetHeight: number[] = new Array(this.photosPerRow).fill(0);
-    let newOffsetWidth: number;
-
-    for (let i = 0; i < this.photosPerRow; i++){
-      newOffsetHeight[i] = this.offsetHeight[i] - this.prevOffsetHeight[index - 1][i];
-    }
-    newOffsetWidth = this.offsetWidth;
-
-    this.prevOffsetHeight.push([...newOffsetHeight]);
-    this.prevOffsetWidth.push(newOffsetWidth);
-  }
-
-  recalculatePositions(){
+  recalculateImagesPosition(insertType: string){
     if(this.deletedBatches.length == 0) return;
-
+    
     let remainingPhotos: any[] = Array.from(document.getElementsByClassName('photo-container'));
-    let lastBatchDeleted = this.deletedBatches.slice(-1)[0];
+    
+    let lastBatchDeleted = this.deletedBatches.slice(-1)[0] - 1;
+    
     remainingPhotos.forEach((photo, index) => {
       var currentValue = parseFloat(photo.style.top);
-      var oldValue = this.prevOffsetHeight[lastBatchDeleted - 1][index % this.photosPerRow];
-      var newValue = currentValue - oldValue;
+      var oldValue = this.batchesOffsetHeight[lastBatchDeleted][index % this.photosPerRow];
+      var newValue = insertType == 'append' ? currentValue - oldValue : currentValue + oldValue;
       
       photo.style.top = newValue + 'px';
     });
     
-    for(let index = 0; index < this.photosPerRow; index++)
-      this.offsetHeight[index] -= this.prevOffsetHeight[lastBatchDeleted - 1][index % this.photosPerRow];
+    for(let index = 0; index < this.photosPerRow; index++){
+      if(insertType == 'append'){
+        var deletedBatchHeight = this.batchesOffsetHeight[lastBatchDeleted][index % this.photosPerRow];
+        this.totalOffsetHeight[index] -= deletedBatchHeight;
+      }else{
+        var lastBatchAdded = this.batchesOffsetHeight.length - 1;
 
-    document.documentElement.scrollTo(0,window.innerHeight / 4 * 10);
+        var addedBatchHeight = this.batchesOffsetHeight[lastBatchDeleted][index % this.photosPerRow];
+        var deletedBatchHeight = this.batchesOffsetHeight[lastBatchAdded][index % this.photosPerRow];
+        
+        this.totalOffsetHeight[index] = this.totalOffsetHeight[index] + addedBatchHeight - deletedBatchHeight;
+      }
+    }
+
+    insertType == 'prepend' ? this.batchesOffsetHeight.pop() : '';
   }
 
   insertBatch(insertType: string){
+    this.currentOffsetWidth = 0;
+    this.currentOffsetHeight.fill(0);
+
     let batchSize = this.masonryGridService.getBatchSize();
 
     let container = document.getElementById('photosContainer')!;
@@ -149,6 +156,17 @@ export class MasonryGridComponent {
     else if(insertType == 'prepend')
       batch = this.previousBatch.reverse();
 
+    if(insertType == 'prepend'){
+      let lastBatchDeleted = this.deletedBatches.slice(-1)[0];
+
+      this.currentOffsetWidth = this.batchesOffsetWidth[lastBatchDeleted - 1];
+      this.currentOffsetHeight = [...this.batchesOffsetHeight[lastBatchDeleted - 1]];
+      
+      this.recalculateImagesPosition(insertType);
+      
+      this.deletedBatches.pop();
+    }
+
     for(let i = 0; i < batchSize; i++){
       let photoDiv = this.createPhotoDiv(i,batch[i],insertType);
 
@@ -157,8 +175,13 @@ export class MasonryGridComponent {
       else if(insertType == 'prepend')
         container.prepend(photoDiv);
     }
-    this.calculatePrevNewOffset();
-    this.recalculatePositions();
+    
+    if(insertType == 'append'){
+      this.batchesOffsetHeight.push([...this.currentOffsetHeight]);
+      this.batchesOffsetWidth.push(this.currentOffsetWidth);
+      
+      this.recalculateImagesPosition(insertType);
+    }
   }
 
   deleteBatch(batchType: string){
@@ -175,7 +198,6 @@ export class MasonryGridComponent {
       
       container.removeChild(child);
     }
-
   }
 
  @HostListener('document:scroll', ['$event'])
@@ -223,17 +245,22 @@ export class MasonryGridComponent {
           this.insertBatch('append');
         }
         else if(loadOptions == 'previous'){
-          // this.deleteBatch('last');
-          // this.currentBatch = this.previousBatch;
-          // this.previousBatch = data;
-          // this.insertBatch('prepend');
+          this.deleteBatch('last');
+          this.currentBatch = this.previousBatch;
+          this.previousBatch = data;
+          this.insertBatch('prepend');
 
-          // this.masonryGridService.setCurrentPage(++currentPage);
+          this.masonryGridService.setCurrentPage(++currentPage);
         }        
       },
       error: (error: any) =>
-        console.log(error)
+      console.log(error)
     });
+    
+    loadOptions == 'next' ? 
+      window.scrollTo(0,screenHeight * 0.3):
+      window.scrollTo(0,screenHeight * 0.5);
+
     setTimeout(() => this.batchTimeout = false, 500);
   }
 }
