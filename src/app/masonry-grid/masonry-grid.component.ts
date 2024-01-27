@@ -65,30 +65,31 @@ export class MasonryGridComponent {
 
   setPhotoPosition(photoDiv: HTMLDivElement, i: number,  image:any, insertType: string){
     if(insertType == 'append'){
-      if(i % this.photosPerRow  == 0){
+      if(Math.round(this.totalOffsetWidth - this.innerWidth) == 0){
         this.totalOffsetWidth = 0;
         this.currentOffsetWidth = 0;
       } 
-
-      photoDiv.style.left = this.totalOffsetWidth + 'px';
-      photoDiv.style.top = this.totalOffsetHeight[i % this.photosPerRow ] + 'px';
+      let currentColumn = Math.round(this.totalOffsetWidth * this.photosPerRow / this.innerWidth);
       
-      this.currentOffsetWidth += this.innerWidth / this.photosPerRow ;
-      this.currentOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
+      photoDiv.style.left = this.totalOffsetWidth + 'px';
+      photoDiv.style.top = this.totalOffsetHeight[currentColumn] + 'px';
+      
+      this.currentOffsetWidth += (Math.round((this.innerWidth / this.photosPerRow) * 100) / 100);
+      this.currentOffsetHeight[currentColumn] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
 
-      this.totalOffsetWidth += this.innerWidth / this.photosPerRow ;
-      this.totalOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
+      this.totalOffsetWidth += (Math.round((this.innerWidth / this.photosPerRow) * 100) / 100);
+      this.totalOffsetHeight[currentColumn] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
     }else if(insertType == 'prepend'){
-      if(this.currentOffsetWidth == 0)
+      if(Math.round(this.currentOffsetWidth) == 0)
         this.currentOffsetWidth = this.innerWidth;
 
-      let batchSize = this.masonryGridService.getBatchSize();
+      let currentColumn = Math.round(this.currentOffsetWidth * this.photosPerRow / this.innerWidth) - 1;
       
       photoDiv.style.left = (this.currentOffsetWidth - this.innerWidth / this.photosPerRow) + 'px';
-      photoDiv.style.top = this.currentOffsetHeight[(batchSize - i - 1) % this.photosPerRow ] - (this.innerWidth * image.height) / (image.width * this.photosPerRow) + 'px';
+      photoDiv.style.top = this.currentOffsetHeight[currentColumn] - (this.innerWidth * image.height) / (image.width * this.photosPerRow) + 'px';
     
-      this.currentOffsetWidth -= this.innerWidth / this.photosPerRow ;
-      this.currentOffsetHeight[(batchSize - i - 1) % this.photosPerRow ] -= (this.innerWidth * image.height) / (image.width * this.photosPerRow); 
+      this.currentOffsetWidth -= (Math.round((this.innerWidth / this.photosPerRow) * 100) / 100);
+      this.currentOffsetHeight[currentColumn] -= (this.innerWidth * image.height) / (image.width * this.photosPerRow); 
     }
 
     return photoDiv;
@@ -118,9 +119,10 @@ export class MasonryGridComponent {
     
     let lastBatchDeleted = this.deletedBatches.slice(-1)[0] - 1;
     
-    remainingPhotos.forEach((photo, index) => {
+    remainingPhotos.forEach((photo) => {
       var currentValue = parseFloat(photo.style.top);
-      var oldValue = this.batchesOffsetHeight[lastBatchDeleted][index % this.photosPerRow];
+      var imageColumn = Math.round(parseFloat(photo.style.left) * this.photosPerRow / this.innerWidth);
+      var oldValue = this.batchesOffsetHeight[lastBatchDeleted][imageColumn];
       var newValue = insertType == 'append' ? currentValue - oldValue : currentValue + oldValue;
       
       photo.style.top = newValue + 'px';
@@ -187,7 +189,7 @@ export class MasonryGridComponent {
       this.batchesOffsetWidth.push(this.currentOffsetWidth);
       
       this.translateImages(insertType);
-    }
+    }    
   }
 
   deleteBatch(batchType: string){
@@ -209,20 +211,26 @@ export class MasonryGridComponent {
   repositionImages(){
     let remainingPhotos: any[] = Array.from(document.getElementsByClassName('photo-container'));
     
-    this.totalOffsetHeight.fill(0);
+    this.totalOffsetHeight = new Array(this.photosPerRow).fill(0);
     this.totalOffsetWidth = 0;
+
+    this.currentOffsetHeight = new Array(this.photosPerRow).fill(0);
+    this.currentOffsetWidth = 0;
 
     for(let i = 0; i < remainingPhotos.length; i++){
       var image = remainingPhotos[i];
 
-      if(i % this.photosPerRow  == 0)
+      if(Math.round(this.totalOffsetWidth - this.innerWidth) == 0)
         this.totalOffsetWidth = 0;
       
+      let currentColumn = Math.round(this.totalOffsetWidth * this.photosPerRow / this.innerWidth);
+
+      image.style.width = 100 / this.photosPerRow + '%';
       image.style.left = this.totalOffsetWidth + 'px';
-      image.style.top = this.totalOffsetHeight[i % this.photosPerRow ] + 'px';
+      image.style.top = this.totalOffsetHeight[currentColumn] + 'px';
       
-      this.totalOffsetWidth += this.innerWidth / this.photosPerRow ;
-      this.totalOffsetHeight[i % this.photosPerRow ] += (this.innerWidth * image.offsetHeight) / (image.offsetWidth * this.photosPerRow);
+      this.totalOffsetWidth += (Math.round((this.innerWidth / this.photosPerRow) * 100) / 100);
+      this.totalOffsetHeight[currentColumn] += (this.innerWidth * image.offsetHeight) / (image.offsetWidth * this.photosPerRow);
     }
   }
 
@@ -231,12 +239,14 @@ export class MasonryGridComponent {
       var newOffsetHeight = new Array(this.photosPerRow).fill(0);
       var newOffsetWidth = 0;
       for(let j = 0; j < this.batchesImagesSizes[i].length; j++){
-        if(j % this.photosPerRow  == 0) newOffsetWidth = 0;
+        if(Math.round(newOffsetWidth - this.innerWidth) == 0) newOffsetWidth = 0;
         
         var image = this.batchesImagesSizes[i][j];
 
-        newOffsetWidth += this.innerWidth / this.photosPerRow ;
-        newOffsetHeight[j % this.photosPerRow ] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
+        var currentColumn = Math.round(newOffsetWidth * this.photosPerRow / this.innerWidth);
+
+        newOffsetWidth += (Math.round((this.innerWidth / this.photosPerRow) * 100) / 100);
+        newOffsetHeight[currentColumn] += (this.innerWidth * image.height) / (image.width * this.photosPerRow);
       }
       this.batchesOffsetHeight[i] = [...newOffsetHeight];
       this.batchesOffsetWidth[i] = newOffsetWidth;
@@ -255,13 +265,13 @@ export class MasonryGridComponent {
   }
 
  @HostListener('document:scroll', ['$event'])
-  public onScroll(){
+  onScroll(){
     if(this.batchTimeout == true)
       return;
     
-    let screenHeight = document.documentElement.scrollHeight;
+    let screenHeight = document.documentElement.scrollHeight - window.innerHeight;
     
-    let newScrollPosition = document.documentElement.scrollTop + window.innerHeight;
+    let newScrollPosition = document.documentElement.scrollTop;
     let scrollPercentage = newScrollPosition / screenHeight;
     let scrollDirection = this.scrollPosition < newScrollPosition ? 'down' : 'up';
 
@@ -270,7 +280,7 @@ export class MasonryGridComponent {
     let loadOptions :string = '';
     
     let currentPage = this.masonryGridService.getCurrentPage();
-
+    
     if(scrollPercentage > 0.75  && scrollDirection == 'down'){
       loadOptions = 'next';
       currentPage++;
@@ -312,8 +322,8 @@ export class MasonryGridComponent {
     });
     
     loadOptions == 'next' ? 
-      window.scrollTo(0,screenHeight * 0.3):
-      window.scrollTo(0,screenHeight * 0.5);
+      window.scrollTo(0,document.documentElement.scrollHeight * 0.3):
+      window.scrollTo(0,document.documentElement.scrollHeight * 0.5);
 
     setTimeout(() => this.batchTimeout = false, 500);
   }
@@ -322,13 +332,9 @@ export class MasonryGridComponent {
   onResize($event: any) {
     this.innerWidth = $event.target.innerWidth;
     
-    let newPPR = this.calculatePPR();
-    
-    if(newPPR == this.photosPerRow){
-      this.repositionImages();
-      this.recalculateOffsets();
-    }else{
+    this.photosPerRow = this.calculatePPR();
 
-    }
+    this.repositionImages();
+    this.recalculateOffsets();
   }
 }
