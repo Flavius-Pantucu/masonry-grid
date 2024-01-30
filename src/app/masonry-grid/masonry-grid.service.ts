@@ -7,33 +7,33 @@ import { Observable } from 'rxjs/internal/Observable';
   providedIn: 'root'
 })
 export class MasonryGridService {
-  curr_page :number = 1;
-  per_page  :number = 20;
+  currentPage    :number = 1;
+  photosPerPage  :number = 20;
 
-  access_key :string = environment.ACCESS_KEY;
-  api_url    :string = environment.API_URL;
+  accessKey :string = environment.ACCESS_KEY;
+  apiURL    :string = environment.API_URL;
 
   constructor(private http: HttpClient) { }
   
   getPhotos(): Observable<Object> {
-    return this.http.get(this.api_url, {
+    return this.http.get(this.apiURL, {
       params:{
-        page: this.curr_page,
-        per_page: this.per_page,
-        client_id: this.access_key
+        page: this.currentPage,
+        per_page: this.photosPerPage,
+        client_id: this.accessKey
       }
     });
   }
 
   getBatchSize(){
-    return this.per_page;
+    return this.photosPerPage;
   }
 
   setCurrentPage(page: number){
-    this.curr_page = page;
+    this.currentPage = page;
   }
 
   getCurrentPage(){
-    return this.curr_page;
+    return this.currentPage;
   }
 }
