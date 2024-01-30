@@ -367,7 +367,7 @@ export class MasonryGridComponent {
           this.scrollPosition = newScrollPosition + offsetScroll;
           window.scrollTo({top : newScrollPosition + offsetScroll, behavior: 'smooth'})
         }      
-        setTimeout(() => this.batchTimeout = false, 300);
+        setTimeout(() => this.batchTimeout = false, 500);
       },
       error: (error: any) =>
       console.log(error)
