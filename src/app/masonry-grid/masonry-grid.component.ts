@@ -135,11 +135,12 @@ export class MasonryGridComponent {
         var deletedBatchHeight = this.batchesOffsetHeight[lastBatchDeleted][index % this.photosPerColumn];
         this.totalOffsetHeight[index] -= deletedBatchHeight;
       }else{
+        
         var lastBatchAdded = this.batchesOffsetHeight.length - 1;
-
+        
         var addedBatchHeight = this.batchesOffsetHeight[lastBatchDeleted][index % this.photosPerColumn];
         var deletedBatchHeight = this.batchesOffsetHeight[lastBatchAdded][index % this.photosPerColumn];
-        
+      
         this.totalOffsetHeight[index] = this.totalOffsetHeight[index] + addedBatchHeight - deletedBatchHeight;
       }
     }
@@ -151,9 +152,7 @@ export class MasonryGridComponent {
   }
 
   insertBatch(insertType: string){
-    this.currentOffsetWidth = 0;
-    this.currentOffsetHeight.fill(0);
-
+    
     let batchSize = this.masonryGridService.getBatchSize();
 
     let container = document.getElementById('photosContainer')!;
@@ -166,8 +165,10 @@ export class MasonryGridComponent {
 
     if(insertType == 'prepend'){      
       this.translateImages(insertType);
-      
       this.deletedBatches.pop();
+    }else{
+      this.currentOffsetWidth = 0;
+      this.currentOffsetHeight.fill(0);
     }
 
     for(let i = 0; i < batchSize; i++){
